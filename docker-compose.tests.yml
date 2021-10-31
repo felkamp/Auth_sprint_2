@@ -1,0 +1,46 @@
+version: "3.9"
+
+services:
+  auth:
+    extends:
+      file: docker-compose.base.yml
+      service: auth
+    container_name: tests_auth_container
+    expose:
+      - 5000
+    depends_on:
+      - db
+      - redis
+    env_file:
+      - tests/.env.test
+
+  tests:
+    build:
+      context: .
+      dockerfile: tests/functional/Dockerfile
+    container_name: tests_container
+    depends_on:
+      - auth
+      - redis
+    env_file:
+      - tests/.env.test
+
+  db:
+    extends:
+      file: docker-compose.base.yml
+      service: db
+    container_name: tests_db_container
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    env_file:
+      - tests/.env.test
+
+  redis:
+    extends:
+      file: docker-compose.base.yml
+      service: redis
+    container_name: tests_redis_container
+
+volumes:
+  postgres_data:
+    name: postgres_data

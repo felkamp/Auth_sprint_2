@@ -1,0 +1,13 @@
+version: "3.9"
+
+services:
+  auth:
+    build: .
+    image: auth
+    user: web
+
+  db:
+    image: postgres:13
+
+  redis:
+    image: redis:6.2.5

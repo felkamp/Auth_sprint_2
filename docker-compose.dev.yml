@@ -1,0 +1,40 @@
+version: "3.9"
+
+services:
+  auth:
+    extends:
+      file: docker-compose.base.yml
+      service: auth
+    container_name: auth_container
+    command: python app.py
+    ports:
+      - "5000:5000"
+    depends_on:
+      - db
+      - redis
+    env_file:
+      - .env
+
+  db:
+    extends:
+      file: docker-compose.base.yml
+      service: db
+    container_name: db_container
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    env_file:
+      - .env
+
+  redis:
+    extends:
+      file: docker-compose.base.yml
+      service: redis
+    container_name: redis_container
+    ports:
+      - "6379:6379"
+
+volumes:
+  postgres_data:
+    name: postgres_data

@@ -1,0 +1,11 @@
+*.pyc
+*.c
+.idea/*
+env/*
+logs/*
+ddi.py
+/build/
+uploads/*
+reports/*
+load_file/*
+__pycache__
