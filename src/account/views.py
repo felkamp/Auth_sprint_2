@@ -6,7 +6,7 @@ from flask_jwt_extended import get_jwt, jwt_required
 from flask_restx import Api, Resource, reqparse
 from flask_security.registerable import register_user
 
-from src.models.user import USER_DATASTORE, User, SocialAccount
+from src.models.user import USER_DATASTORE, User
 from src.services.auth import auth_service, GOOGLE_AUTH_SERVICE
 
 
