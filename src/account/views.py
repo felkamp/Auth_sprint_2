@@ -8,6 +8,7 @@ from flask_security.registerable import register_user
 
 from src.models.user import USER_DATASTORE, User
 from src.services.auth import auth_service
+from src.utils.rate_limit import rate_limit
 
 account = Blueprint("account", __name__)
 api = Api(account)
@@ -24,6 +25,7 @@ login_post_parser.add_argument("User-Agent", location="headers")
 class Login(Resource):
     """Endpoint to user login."""
 
+    @rate_limit()
     @api.expect(login_post_parser)
     def post(self):
         """Check user credentials and get JWT token for user."""
@@ -53,6 +55,7 @@ class Login(Resource):
 class LoginHistory(Resource):
     """Endpoint to represent user login history."""
 
+    @rate_limit()
     @jwt_required()
     def get(self):
         """Get user login history info."""
@@ -76,6 +79,8 @@ credentials_change_put.add_argument(
 
 @api.route("/account_credentials")
 class CredentialsChange(Resource):
+
+    @rate_limit()
     @api.expect(credentials_change_put)
     @jwt_required()
     def put(self):
@@ -111,6 +116,7 @@ logout_post_parser.add_argument(
 class Logout(Resource):
     """Endpoint to user logout."""
 
+    @rate_limit()
     @api.expect(logout_post_parser)
     @jwt_required()
     def post(self):
@@ -144,6 +150,7 @@ register_post_parser.add_argument(
 class Register(Resource):
     """Endpoint to sign up."""
 
+    @rate_limit()
     @api.expect(register_post_parser)
     def post(self):
         """Register a new user."""
@@ -168,6 +175,7 @@ refresh_post_parser.add_argument("Authorization", location="headers")
 class Refresh(Resource):
     """Endpoint to refresh JWT tokens."""
 
+    @rate_limit()
     @api.expect(refresh_post_parser)
     @jwt_required(refresh=True)
     def post(self):
