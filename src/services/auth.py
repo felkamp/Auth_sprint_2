@@ -1,4 +1,5 @@
 import time
+import json
 from typing import Optional
 
 from flask_jwt_extended import (create_access_token, create_refresh_token,
@@ -6,11 +7,26 @@ from flask_jwt_extended import (create_access_token, create_refresh_token,
 from flask_security.utils import hash_password, verify_password
 from loguru import logger
 from marshmallow import Schema, fields
+from rauth import OAuth2Service
 
 from src.constants import CredentialType
 from src.db.postgres import db
 from src.db.redis import redis_db
-from src.models.user import USER_DATASTORE, AuthorizationUserLog, User
+from src.models.user import (
+    USER_DATASTORE, AuthorizationUserLog,
+    User, SocialAccount,
+)
+from src.config import Settings
+
+
+GOOGLE_AUTH_SERVICE = OAuth2Service(
+    name='google',
+    authorize_url='https://accounts.google.com/o/oauth2/auth',
+    access_token_url='https://accounts.google.com/o/oauth2/token',
+    client_id=Settings.GOOGLE_CLIENT_ID,
+    client_secret=Settings.GOOGLE_CLIENT_SECRET,
+    base_url='https://accounts.google.com/o/oauth2/auth'
+)
 
 
 class AuthUserLogSchema(Schema):
@@ -35,6 +51,40 @@ class AuthService:
         password_is_correct = verify_password(password, user.password)
         if not password_is_correct:
             return None
+        return user
+
+    def authenticate_user_with_google(
+            self, code: str, redirect_uri: str):
+        """Check authentication with google user account.
+
+        If authentication is correct, return user object.
+        """
+        try:
+            oauth2_session = GOOGLE_AUTH_SERVICE.get_auth_session(
+                data={
+                    'code': code,
+                    'grant_type': 'authorization_code',
+                    'redirect_uri': redirect_uri,
+                },
+                decoder=json.loads
+            )
+        except Exception as error:
+            logger.error(
+                f'When logging in through Google, '
+                f'the following error occurred - {error}')
+            return None
+
+        user_info = oauth2_session.get(
+            'https://www.googleapis.com/oauth2/v1/userinfo').json()
+        email = user_info.get('email')
+        social_id = user_info.get('id')
+        social_name = 'google'
+
+        social_accoint, _ = SocialAccount.get_or_create(
+            social_id, social_name, email
+        )
+        user = social_accoint.user
+
         return user
 
     def redis_key(self, user_id: str, user_agent: str) -> str:

@@ -1,13 +1,14 @@
 from http import HTTPStatus
 from typing import Optional
 
-from flask import Blueprint, abort
+from flask import Blueprint, abort, redirect, url_for
 from flask_jwt_extended import get_jwt, jwt_required
 from flask_restx import Api, Resource, reqparse
 from flask_security.registerable import register_user
 
-from src.models.user import USER_DATASTORE, User
-from src.services.auth import auth_service
+from src.models.user import USER_DATASTORE, User, SocialAccount
+from src.services.auth import auth_service, GOOGLE_AUTH_SERVICE
+
 
 account = Blueprint("account", __name__)
 api = Api(account)
@@ -42,6 +43,59 @@ class Login(Resource):
 
         user_agent = args.get("User-Agent")
         auth_service.save_refresh_token_in_redis(jwt_tokens.get("refresh"), user_agent)
+        auth_service.create_user_auth_log(
+            user_id=authenticated_user.id, device=user_agent
+        )
+
+        return jwt_tokens
+
+
+@api.route("/google_login")
+class GoogleLogin(Resource):
+    """Login user with google provider."""
+
+    def get(self):
+        """Get google login page and redirect to google auth endpoint."""
+        google_auth_endpoint = url_for('account.google_authorize')
+        params = {
+            'redirect_uri': f'{self.api.base_url[:-1]}{google_auth_endpoint}',
+            'response_type': 'code', 'scope': "email"
+        }
+        url = GOOGLE_AUTH_SERVICE.get_authorize_url(**params)
+        return redirect(url)
+
+
+google_authorize_parser = reqparse.RequestParser()
+google_authorize_parser.add_argument(
+    "code", help="Code for google credentials"
+)
+google_authorize_parser.add_argument("User-Agent", location="headers")
+
+
+@api.route("/google_authorize")
+class GoogleAuthorize(Resource):
+    """Authorization with user google account."""
+    def get(self):
+        """Authorize user with google account and get jwt tokens."""
+        args = google_authorize_parser.parse_args()
+        code = args.get("code")
+
+        google_auth_endpoint = url_for('account.google_authorize')
+        redirect_uri = f'{self.api.base_url[:-1]}{google_auth_endpoint}'
+
+        authenticated_user = auth_service.authenticate_user_with_google(
+            code, redirect_uri
+        )
+        if not authenticated_user:
+            return abort(
+                HTTPStatus.BAD_REQUEST,
+                'There was a problem logging into Google account',
+            )
+        jwt_tokens = auth_service.get_jwt_tokens(authenticated_user)
+
+        user_agent = args.get("User-Agent")
+        auth_service.save_refresh_token_in_redis(jwt_tokens.get("refresh"),
+                                                 user_agent)
         auth_service.create_user_auth_log(
             user_id=authenticated_user.id, device=user_agent
         )

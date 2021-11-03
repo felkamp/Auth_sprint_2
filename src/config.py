@@ -34,6 +34,10 @@ class Settings:
         int(os.getenv("SQLALCHEMY_TRACK_MODIFICATIONS", 0))
     )
 
+    GOOGLE_CLIENT_ID = os.environ.get("GOOGLE_CLIENT_ID")
+    GOOGLE_CLIENT_SECRET = os.environ.get("GOOGLE_CLIENT_SECRET")
+    GOOGLE_DISCOVERY_URL = os.environ.get("GOOGLE_DISCOVERY_URL")
+
 
 class RedisSettings:
     REDIS_HOST: str = os.getenv("REDIS_HOST")
