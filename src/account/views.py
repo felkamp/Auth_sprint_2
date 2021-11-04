@@ -43,7 +43,9 @@ class Login(Resource):
         user_agent = args.get("User-Agent")
         auth_service.save_refresh_token_in_redis(jwt_tokens.get("refresh"), user_agent)
         auth_service.create_user_auth_log(
-            user_id=authenticated_user.id, device=user_agent
+            user_id=authenticated_user.id,
+            device=user_agent,
+            user_date_of_birth=authenticated_user.date_of_birth,
         )
 
         return jwt_tokens
