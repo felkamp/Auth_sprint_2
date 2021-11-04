@@ -34,6 +34,8 @@ class Settings:
         int(os.getenv("SQLALCHEMY_TRACK_MODIFICATIONS", 0))
     )
 
+    RESTX_VALIDATE: bool = bool(int(os.getenv("RESTX_VALIDATE", 1)))
+
 
 class RedisSettings:
     REDIS_HOST: str = os.getenv("REDIS_HOST")

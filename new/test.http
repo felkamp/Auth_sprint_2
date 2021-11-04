@@ -1,0 +1,22 @@
+###
+POST http://localhost:5000/account/login
+Content-Type: application/json
+
+{
+    "email":"a@a.a",
+    "password":"a"
+}
+
+
+
+
+
+
+###
+Authorization: Bearer s
+
+### 
+GET http://localhost:5000/roles
+Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTYzNTkzODgwNSwianRpIjoiY2FlZTljM2MtYTAxNi00MzFlLWI2NDUtZTBmNjA2OThhYWY4IiwidHlwZSI6ImFjY2VzcyIsInN1YiI6IjYwM2Q2NTdhLTg3OWQtNDAxOS1hY2FjLTRhYjE3NGNmZmI5NCIsIm5iZiI6MTYzNTkzODgwNSwiZXhwIjoxNjM1OTQyNDA1LCJwZXJtcyI6MH0.6o9wYEqRiISskNBGQczdVZkYZiSXPDFoBJovcPXqspg
+
+

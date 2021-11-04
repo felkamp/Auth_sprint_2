@@ -1,0 +1,200 @@
+{
+    "swagger": "2.0",
+    "basePath": "/account",
+    "paths": {
+        "/account_credentials": {
+            "put": {
+                "responses": {
+                    "200": {
+                        "description": "Success"
+                    }
+                },
+                "summary": "Endpoint to change user credentials email or password",
+                "operationId": "put_credentials_change",
+                "parameters": [
+                    {
+                        "name": "credential_type",
+                        "in": "query",
+                        "type": "string",
+                        "required": true,
+                        "description": "Type to change"
+                    },
+                    {
+                        "name": "old",
+                        "in": "query",
+                        "type": "string",
+                        "required": true,
+                        "description": "Current credential cannot be blank!"
+                    },
+                    {
+                        "name": "new",
+                        "in": "query",
+                        "type": "string",
+                        "required": true,
+                        "description": "New credential cannot be blank!"
+                    }
+                ],
+                "tags": [
+                    "default"
+                ]
+            }
+        },
+        "/login": {
+            "post": {
+                "responses": {
+                    "200": {
+                        "description": "Success"
+                    }
+                },
+                "summary": "Check user credentials and get JWT token for user",
+                "operationId": "post_login",
+                "parameters": [
+                    {
+                        "name": "email",
+                        "in": "query",
+                        "type": "string",
+                        "required": true,
+                        "description": "Email cannot be blank!"
+                    },
+                    {
+                        "name": "password",
+                        "in": "query",
+                        "type": "string",
+                        "required": true,
+                        "description": "Password cannot be blank!"
+                    },
+                    {
+                        "name": "User-Agent",
+                        "in": "header",
+                        "type": "string"
+                    }
+                ],
+                "tags": [
+                    "default"
+                ]
+            }
+        },
+        "/login_history": {
+            "get": {
+                "responses": {
+                    "200": {
+                        "description": "Success"
+                    }
+                },
+                "summary": "Get user login history info",
+                "operationId": "get_login_history",
+                "tags": [
+                    "default"
+                ]
+            }
+        },
+        "/logout": {
+            "post": {
+                "responses": {
+                    "200": {
+                        "description": "Success"
+                    }
+                },
+                "summary": "Logout user with deleting refresh tokens",
+                "description": "If 'is_full' request param exists, then delete all refresh tokens.",
+                "operationId": "post_logout",
+                "parameters": [
+                    {
+                        "name": "User-Agent",
+                        "in": "header",
+                        "type": "string"
+                    },
+                    {
+                        "name": "is_full",
+                        "in": "query",
+                        "type": "boolean",
+                        "description": "Logout from all accounts!"
+                    }
+                ],
+                "tags": [
+                    "default"
+                ]
+            }
+        },
+        "/refresh": {
+            "post": {
+                "responses": {
+                    "200": {
+                        "description": "Success"
+                    }
+                },
+                "summary": "Create new pair of access and refresh JWT tokens for user",
+                "operationId": "post_refresh",
+                "parameters": [
+                    {
+                        "name": "User-Agent",
+                        "in": "header",
+                        "type": "string"
+                    },
+                    {
+                        "name": "Authorization",
+                        "in": "header",
+                        "type": "string"
+                    }
+                ],
+                "tags": [
+                    "default"
+                ]
+            }
+        },
+        "/register": {
+            "post": {
+                "responses": {
+                    "200": {
+                        "description": "Success"
+                    }
+                },
+                "summary": "Register a new user",
+                "operationId": "post_register",
+                "parameters": [
+                    {
+                        "name": "email",
+                        "in": "query",
+                        "type": "string",
+                        "required": true,
+                        "description": "Email cannot be blank!"
+                    },
+                    {
+                        "name": "password",
+                        "in": "query",
+                        "type": "string",
+                        "required": true,
+                        "description": "Password cannot be blank!"
+                    }
+                ],
+                "tags": [
+                    "default"
+                ]
+            }
+        }
+    },
+    "info": {
+        "title": "API",
+        "version": "1.0"
+    },
+    "produces": [
+        "application/json"
+    ],
+    "consumes": [
+        "application/json"
+    ],
+    "tags": [
+        {
+            "name": "default",
+            "description": "Default namespace"
+        }
+    ],
+    "responses": {
+        "ParseError": {
+            "description": "When a mask can't be parsed"
+        },
+        "MaskError": {
+            "description": "When any error occurs on mask"
+        }
+    }
+}

@@ -1,0 +1,919 @@
+{
+    "openapi": "3.0.2",
+    "info": {
+        "title": "API онлайн кинотеатра",
+        "version": "0.1.0"
+    },
+    "paths": {
+        "/api/v1/films": {
+            "get": {
+                "tags": [
+                    "Кинопроизведения",
+                    "Список документов"
+                ],
+                "summary": "Список фильмов",
+                "description": "Выводит список фильмов с возможностью сортировки, фильтрации и пагинации",
+                "operationId": "film_list_api_v1_films_get",
+                "parameters": [
+                    {
+                        "description": "Поле для сортировки",
+                        "required": false,
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/components/schemas/FilmFieldSort"
+                                }
+                            ],
+                            "description": "Поле для сортировки",
+                            "default": "-imdb_rating"
+                        },
+                        "name": "sort",
+                        "in": "query"
+                    },
+                    {
+                        "description": "Количество записей на странице",
+                        "required": false,
+                        "schema": {
+                            "title": "Page[Size]",
+                            "minimum": 1.0,
+                            "type": "integer",
+                            "description": "Количество записей на странице",
+                            "default": 50
+                        },
+                        "name": "page[size]",
+                        "in": "query"
+                    },
+                    {
+                        "description": "Номер страницы",
+                        "required": false,
+                        "schema": {
+                            "title": "Page[Number]",
+                            "minimum": 1.0,
+                            "type": "integer",
+                            "description": "Номер страницы",
+                            "default": 1
+                        },
+                        "name": "page[number]",
+                        "in": "query"
+                    },
+                    {
+                        "description": "id жанра для фильтрации",
+                        "required": false,
+                        "schema": {
+                            "title": "Filter[Genre]",
+                            "type": "string",
+                            "description": "id жанра для фильтрации",
+                            "format": "uuid"
+                        },
+                        "name": "filter[genre]",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Список фильмов в кратком формате",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "title": "Response Film List Api V1 Films Get",
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/FilmShort"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/films/search": {
+            "get": {
+                "tags": [
+                    "Кинопроизведения",
+                    "Полнотекстовый поиск"
+                ],
+                "summary": "Поиск фильмов",
+                "description": "Полнотекстовый поиск по фильмам",
+                "operationId": "film_list_search_api_v1_films_search_get",
+                "parameters": [
+                    {
+                        "description": "Поле для сортировки",
+                        "required": false,
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/components/schemas/FilmFieldSort"
+                                }
+                            ],
+                            "description": "Поле для сортировки",
+                            "default": "-imdb_rating"
+                        },
+                        "name": "sort",
+                        "in": "query"
+                    },
+                    {
+                        "description": "Количество записей на странице",
+                        "required": false,
+                        "schema": {
+                            "title": "Page[Size]",
+                            "minimum": 1.0,
+                            "type": "integer",
+                            "description": "Количество записей на странице",
+                            "default": 50
+                        },
+                        "name": "page[size]",
+                        "in": "query"
+                    },
+                    {
+                        "description": "Номер страницы",
+                        "required": false,
+                        "schema": {
+                            "title": "Page[Number]",
+                            "minimum": 1.0,
+                            "type": "integer",
+                            "description": "Номер страницы",
+                            "default": 1
+                        },
+                        "name": "page[number]",
+                        "in": "query"
+                    },
+                    {
+                        "description": "Поисковый запрос",
+                        "required": true,
+                        "schema": {
+                            "title": "Query",
+                            "type": "string",
+                            "description": "Поисковый запрос"
+                        },
+                        "name": "query",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Список фильмов в кратком формате",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "title": "Response Film List Search Api V1 Films Search Get",
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/FilmShort"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/films/{film_id}": {
+            "get": {
+                "tags": [
+                    "Кинопроизведения",
+                    "Детальная информация"
+                ],
+                "summary": "информация о фильме",
+                "description": "Выводит подробную информацию о фильме",
+                "operationId": "film_details_api_v1_films__film_id__get",
+                "parameters": [
+                    {
+                        "description": "id фильма",
+                        "required": true,
+                        "schema": {
+                            "title": "Film Id",
+                            "type": "string",
+                            "description": "id фильма",
+                            "format": "uuid"
+                        },
+                        "name": "film_id",
+                        "in": "path"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Подробная информация о фильме",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Film"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/genres": {
+            "get": {
+                "tags": [
+                    "Жанры кинопроизведений",
+                    "Список документов"
+                ],
+                "summary": "Список жанров",
+                "description": "Выводит список жанров с возможностью пагинации",
+                "operationId": "genre_list_api_v1_genres_get",
+                "parameters": [
+                    {
+                        "description": "Количество записей на странице",
+                        "required": false,
+                        "schema": {
+                            "title": "Page[Size]",
+                            "minimum": 1.0,
+                            "type": "integer",
+                            "description": "Количество записей на странице",
+                            "default": 50
+                        },
+                        "name": "page[size]",
+                        "in": "query"
+                    },
+                    {
+                        "description": "Номер страницы",
+                        "required": false,
+                        "schema": {
+                            "title": "Page[Number]",
+                            "minimum": 1.0,
+                            "type": "integer",
+                            "description": "Номер страницы",
+                            "default": 1
+                        },
+                        "name": "page[number]",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Список жанров в кратком формате",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "title": "Response Genre List Api V1 Genres Get",
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/GenreShort"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/genres/{genre_id}": {
+            "get": {
+                "tags": [
+                    "Жанры кинопроизведений",
+                    "Детальная информация"
+                ],
+                "summary": "информация о жаннре",
+                "description": "Выводит подробную информацию о жанре",
+                "operationId": "genre_details_api_v1_genres__genre_id__get",
+                "parameters": [
+                    {
+                        "description": "id жанра",
+                        "required": true,
+                        "schema": {
+                            "title": "Genre Id",
+                            "type": "string",
+                            "description": "id жанра",
+                            "format": "uuid"
+                        },
+                        "name": "genre_id",
+                        "in": "path"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Подробная информация о жанре",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Genre"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/persons": {
+            "get": {
+                "tags": [
+                    "Персоны - актёры, режиссеры, сценаристы",
+                    "Список документов"
+                ],
+                "summary": "Список персон",
+                "description": "Выводит список персон с возможностью пагинации",
+                "operationId": "person_list_api_v1_persons_get",
+                "parameters": [
+                    {
+                        "description": "Количество записей на странице",
+                        "required": false,
+                        "schema": {
+                            "title": "Page[Size]",
+                            "minimum": 1.0,
+                            "type": "integer",
+                            "description": "Количество записей на странице",
+                            "default": 50
+                        },
+                        "name": "page[size]",
+                        "in": "query"
+                    },
+                    {
+                        "description": "Номер страницы",
+                        "required": false,
+                        "schema": {
+                            "title": "Page[Number]",
+                            "minimum": 1.0,
+                            "type": "integer",
+                            "description": "Номер страницы",
+                            "default": 1
+                        },
+                        "name": "page[number]",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Список персон",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "title": "Response Person List Api V1 Persons Get",
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/Person"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/persons/{person_id}": {
+            "get": {
+                "tags": [
+                    "Персоны - актёры, режиссеры, сценаристы",
+                    "Детальная информация"
+                ],
+                "summary": "информация о персоне",
+                "description": "Выводит подробную информацию о персоне",
+                "operationId": "person_details_api_v1_persons__person_id__get",
+                "parameters": [
+                    {
+                        "description": "id жанра",
+                        "required": true,
+                        "schema": {
+                            "title": "Person Id",
+                            "type": "string",
+                            "description": "id жанра",
+                            "format": "uuid"
+                        },
+                        "name": "person_id",
+                        "in": "path"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Подробная информация о персоне",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Person"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/persons/search": {
+            "get": {
+                "tags": [
+                    "Персоны - актёры, режиссеры, сценаристы",
+                    "Полнотекстовый поиск"
+                ],
+                "summary": "Поиск персоны",
+                "description": "Полнотекстовый поиск по персонам",
+                "operationId": "person_list_search_api_v1_persons_search_get",
+                "parameters": [
+                    {
+                        "description": "Поле для сортировки",
+                        "required": false,
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/components/schemas/PersonFieldSort"
+                                }
+                            ],
+                            "description": "Поле для сортировки",
+                            "default": "-full_name.keyword"
+                        },
+                        "name": "sort",
+                        "in": "query"
+                    },
+                    {
+                        "description": "Количество записей на странице",
+                        "required": false,
+                        "schema": {
+                            "title": "Page[Size]",
+                            "minimum": 1.0,
+                            "type": "integer",
+                            "description": "Количество записей на странице",
+                            "default": 50
+                        },
+                        "name": "page[size]",
+                        "in": "query"
+                    },
+                    {
+                        "description": "Номер страницы",
+                        "required": false,
+                        "schema": {
+                            "title": "Page[Number]",
+                            "minimum": 1.0,
+                            "type": "integer",
+                            "description": "Номер страницы",
+                            "default": 1
+                        },
+                        "name": "page[number]",
+                        "in": "query"
+                    },
+                    {
+                        "description": "Поисковый запрос",
+                        "required": true,
+                        "schema": {
+                            "title": "Query",
+                            "type": "string",
+                            "description": "Поисковый запрос"
+                        },
+                        "name": "query",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Список персон",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "title": "Response Person List Search Api V1 Persons Search Get",
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/Person"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/persons/{person_id}/films": {
+            "get": {
+                "tags": [
+                    "Персоны - актёры, режиссеры, сценаристы",
+                    "Список документов"
+                ],
+                "summary": "Список фильмов",
+                "description": "Список фильмов конкретной персоны",
+                "operationId": "person_list_film_api_v1_persons__person_id__films_get",
+                "parameters": [
+                    {
+                        "required": true,
+                        "schema": {
+                            "title": "Person Id",
+                            "type": "string",
+                            "format": "uuid"
+                        },
+                        "name": "person_id",
+                        "in": "path"
+                    },
+                    {
+                        "description": "Количество записей на странице",
+                        "required": false,
+                        "schema": {
+                            "title": "Page[Size]",
+                            "minimum": 1.0,
+                            "type": "integer",
+                            "description": "Количество записей на странице",
+                            "default": 50
+                        },
+                        "name": "page[size]",
+                        "in": "query"
+                    },
+                    {
+                        "description": "Номер страницы",
+                        "required": false,
+                        "schema": {
+                            "title": "Page[Number]",
+                            "minimum": 1.0,
+                            "type": "integer",
+                            "description": "Номер страницы",
+                            "default": 1
+                        },
+                        "name": "page[number]",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Список фильмов персоны",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "title": "Response Person List Film Api V1 Persons  Person Id  Films Get",
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/FilmShort"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "Film": {
+                "title": "Film",
+                "required": [
+                    "id",
+                    "title",
+                    "creation_date",
+                    "imdb_rating",
+                    "type"
+                ],
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "title": "Id",
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "title": {
+                        "title": "Title",
+                        "type": "string"
+                    },
+                    "description": {
+                        "title": "Description",
+                        "type": "string",
+                        "default": ""
+                    },
+                    "creation_date": {
+                        "title": "Creation Date",
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "imdb_rating": {
+                        "title": "Imdb Rating",
+                        "maximum": 10.0,
+                        "minimum": 0.0,
+                        "type": "number"
+                    },
+                    "type": {
+                        "$ref": "#/components/schemas/FilmType"
+                    },
+                    "genres": {
+                        "title": "Genres",
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/GenreShort"
+                        },
+                        "default": []
+                    },
+                    "actors": {
+                        "title": "Actors",
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/PersonShortForMovie"
+                        },
+                        "default": []
+                    },
+                    "directors": {
+                        "title": "Directors",
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/PersonShortForMovie"
+                        },
+                        "default": []
+                    },
+                    "writers": {
+                        "title": "Writers",
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/PersonShortForMovie"
+                        },
+                        "default": []
+                    }
+                },
+                "description": "model class for movie"
+            },
+            "FilmFieldSort": {
+                "title": "FilmFieldSort",
+                "enum": [
+                    "-imdb_rating",
+                    "imdb_rating",
+                    "-title.raw",
+                    "title.raw"
+                ],
+                "type": "string",
+                "description": "Список полей доступных для сортировки фильмов."
+            },
+            "FilmShort": {
+                "title": "FilmShort",
+                "required": [
+                    "id",
+                    "title"
+                ],
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "title": "Id",
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "title": {
+                        "title": "Title",
+                        "type": "string"
+                    },
+                    "imdb_rating": {
+                        "title": "Imdb Rating",
+                        "maximum": 10.0,
+                        "minimum": 0.0,
+                        "type": "number",
+                        "default": 0
+                    }
+                }
+            },
+            "FilmType": {
+                "title": "FilmType",
+                "enum": [
+                    "tv_show",
+                    "movie"
+                ],
+                "type": "string",
+                "description": "enumerator for movie's type"
+            },
+            "FilmsByRole": {
+                "title": "FilmsByRole",
+                "required": [
+                    "role",
+                    "films_id"
+                ],
+                "type": "object",
+                "properties": {
+                    "role": {
+                        "title": "Role",
+                        "type": "string"
+                    },
+                    "films_id": {
+                        "title": "Films Id",
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                }
+            },
+            "Genre": {
+                "title": "Genre",
+                "required": [
+                    "id",
+                    "name"
+                ],
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "title": "Id",
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "name": {
+                        "title": "Name",
+                        "type": "string"
+                    },
+                    "description": {
+                        "title": "Description",
+                        "type": "string",
+                        "default": ""
+                    }
+                },
+                "description": "model class for movie genre"
+            },
+            "GenreShort": {
+                "title": "GenreShort",
+                "required": [
+                    "id",
+                    "name"
+                ],
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "title": "Id",
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "name": {
+                        "title": "Name",
+                        "type": "string"
+                    }
+                }
+            },
+            "HTTPValidationError": {
+                "title": "HTTPValidationError",
+                "type": "object",
+                "properties": {
+                    "detail": {
+                        "title": "Detail",
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/ValidationError"
+                        }
+                    }
+                }
+            },
+            "Person": {
+                "title": "Person",
+                "required": [
+                    "id",
+                    "full_name",
+                    "birth_date",
+                    "films"
+                ],
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "title": "Id",
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "full_name": {
+                        "title": "Full Name",
+                        "type": "string"
+                    },
+                    "birth_date": {
+                        "title": "Birth Date",
+                        "type": "string",
+                        "format": "date"
+                    },
+                    "films": {
+                        "title": "Films",
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/FilmsByRole"
+                        }
+                    }
+                }
+            },
+            "PersonFieldSort": {
+                "title": "PersonFieldSort",
+                "enum": [
+                    "-full_name.keyword",
+                    "full_name.keyword"
+                ],
+                "type": "string",
+                "description": "Список доступных полей для сортировки персон"
+            },
+            "PersonShortForMovie": {
+                "title": "PersonShortForMovie",
+                "required": [
+                    "id",
+                    "name"
+                ],
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "title": "Id",
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "name": {
+                        "title": "Name",
+                        "type": "string"
+                    }
+                }
+            },
+            "ValidationError": {
+                "title": "ValidationError",
+                "required": [
+                    "loc",
+                    "msg",
+                    "type"
+                ],
+                "type": "object",
+                "properties": {
+                    "loc": {
+                        "title": "Location",
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "msg": {
+                        "title": "Message",
+                        "type": "string"
+                    },
+                    "type": {
+                        "title": "Error Type",
+                        "type": "string"
+                    }
+                }
+            }
+        }
+    }
+}

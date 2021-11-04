@@ -3,14 +3,37 @@ from typing import Optional
 
 from flask import Blueprint, abort
 from flask_jwt_extended import get_jwt, jwt_required
-from flask_restx import Api, Resource, reqparse
+from flask_restx import Api, Resource, reqparse, fields
 from flask_security.registerable import register_user
 
 from src.models.user import USER_DATASTORE, User
 from src.services.auth import auth_service
 
 account = Blueprint("account", __name__)
-api = Api(account)
+api = Api(
+    account, title="Account API", description="Account API for Authentication service"
+)
+api.add_namespace()
+api.default_namespace = ""
+
+msg_response_model = api.model(
+    "Msg data response",
+    {
+        "msg": fields.String(
+            default="Thank you for registering. Now you can log in to your account."
+        )
+    },
+)
+
+
+tokens_response_model = api.model(
+    "Token data response",
+    {
+        "access": fields.String(default="JWTTOKENACCESS"),
+        "refresh": fields.String(default="JWTTOKENREFRESH"),
+    },
+)
+
 
 login_post_parser = reqparse.RequestParser()
 login_post_parser.add_argument("email", required=True, help="Email cannot be blank!")
@@ -25,6 +48,7 @@ class Login(Resource):
     """Endpoint to user login."""
 
     @api.expect(login_post_parser)
+    @api.marshal_with(tokens_response_model, code=HTTPStatus.OK)
     def post(self):
         """Check user credentials and get JWT token for user."""
 
@@ -54,6 +78,7 @@ class LoginHistory(Resource):
     """Endpoint to represent user login history."""
 
     @jwt_required()
+    # @api.marshal_with(logs_response_model, code=HTTPStatus.OK)
     def get(self):
         """Get user login history info."""
         token_payload = get_jwt()
@@ -76,8 +101,11 @@ credentials_change_put.add_argument(
 
 @api.route("/account_credentials")
 class CredentialsChange(Resource):
+    """Endpoint to change account credentials."""
+
     @api.expect(credentials_change_put)
     @jwt_required()
+    @api.marshal_with(msg_response_model, code=HTTPStatus.OK)
     def put(self):
         """Endpoint to change user credentials email or password."""
 
@@ -112,6 +140,7 @@ class Logout(Resource):
     """Endpoint to user logout."""
 
     @api.expect(logout_post_parser)
+    @api.marshal_with(msg_response_model, code=HTTPStatus.OK)
     @jwt_required()
     def post(self):
         """Logout user with deleting refresh tokens.
@@ -145,6 +174,7 @@ class Register(Resource):
     """Endpoint to sign up."""
 
     @api.expect(register_post_parser)
+    @api.marshal_with(msg_response_model, code=HTTPStatus.OK)
     def post(self):
         """Register a new user."""
         args = register_post_parser.parse_args()
@@ -170,6 +200,7 @@ class Refresh(Resource):
 
     @api.expect(refresh_post_parser)
     @jwt_required(refresh=True)
+    @api.marshal_with(tokens_response_model, code=HTTPStatus.OK)
     def post(self):
         """Create new pair of access and refresh JWT tokens for user."""
 

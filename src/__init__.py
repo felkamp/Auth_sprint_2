@@ -29,8 +29,8 @@ def create_app(config=None):
     JWTManager(app)
     Security(app, SQLAlchemyUserDatastore(db, User, Role), register_blueprint=False)
 
-    app.register_blueprint(account)
-    app.register_blueprint(admin)
+    app.register_blueprint(blueprint=account, url_prefix="/account")
+    app.register_blueprint(blueprint=admin, url_prefix="/admin")
 
     return app
 
