@@ -2,7 +2,7 @@ from http import HTTPStatus
 
 from flask import Blueprint, abort
 from flask_jwt_extended import jwt_required
-from flask_restx import Api, Resource, fields, reqparse
+from flask_restx import Namespace, Resource, fields, reqparse
 
 from src.models.user import Permission, Role, User
 from src.services.role import role_service
@@ -10,7 +10,13 @@ from src.services.user import user_service
 from src.utils.utils import check_permission, is_valid_uuid
 
 admin = Blueprint("admin", __name__)
-api = Api(admin)
+
+api = Namespace(
+    name="admin", description="Admin API for Authentication service")
+
+msg_response_model = api.model(
+    "Msg data response", {"msg": fields.String(default="Role deleted!")}
+)
 
 role_response_model = api.model(
     "Role data response",
@@ -23,8 +29,10 @@ role_response_model = api.model(
 )
 
 roles_list_get_parser = reqparse.RequestParser(bundle_errors=True)
-roles_list_get_parser.add_argument("page", required=True, type=int, location="args")
-roles_list_get_parser.add_argument("size", required=True, type=int, location="args")
+roles_list_get_parser.add_argument(
+    "page", required=True, type=int, location="args")
+roles_list_get_parser.add_argument(
+    "size", required=True, type=int, location="args")
 
 roles_list_post_parser = reqparse.RequestParser(bundle_errors=True)
 roles_list_post_parser.add_argument("name", required=True, location="form")
@@ -48,6 +56,7 @@ class RolesList(Resource):
         return role_service.get_roles(page=args.get("page"), size=args.get("size"))
 
     @api.expect(roles_list_post_parser)
+    @api.marshal_with(msg_response_model, code=HTTPStatus.OK)
     @jwt_required()
     @check_permission(Permission.CREATE)
     def post(self):
@@ -87,6 +96,7 @@ class RoleDetail(Resource):
         return Role.query.filter_by(id=id).first_or_404()
 
     @api.expect(role_detail_put_parser)
+    @api.marshal_with(msg_response_model, code=HTTPStatus.OK)
     @jwt_required()
     @check_permission(Permission.UPDATE)
     def put(self, id):
@@ -132,6 +142,7 @@ class UserRole(Resource):
     """
 
     @api.expect(user_role_post_parser)
+    @api.marshal_with(msg_response_model, code=HTTPStatus.OK)
     @jwt_required()
     @check_permission(Permission.CREATE)
     def post(self, user_id):
@@ -157,12 +168,14 @@ class UserRole(Resource):
     Lets you DELETE to remove user role
     """
 
+    @api.marshal_with(msg_response_model, code=HTTPStatus.OK)
     @jwt_required()
     @check_permission(Permission.DELETE)
     def delete(self, user_id, role_id):
         """Delete user role."""
         if not all([is_valid_uuid(user_id), is_valid_uuid(role_id)]):
             return abort(HTTPStatus.BAD_REQUEST)
+
         if not user_service.has_role(user_id=user_id, role_id=role_id):
             return abort(HTTPStatus.NOT_FOUND, "User does not have this role!")
 
