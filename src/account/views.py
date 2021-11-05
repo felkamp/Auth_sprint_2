@@ -283,7 +283,7 @@ class Captcha(Resource):
         problem_id = str(uuid.uuid4())
         problem, answer = get_simple_math_problem()
         redis_db.setex(name=problem_id, time=60 * 5, value=answer)
-        return {'id': problem_id, 'math_problem': problem, "answer": answer}
+        return {'id': problem_id, 'math_problem': problem}
 
 
 captcha_post_parser = reqparse.RequestParser()
