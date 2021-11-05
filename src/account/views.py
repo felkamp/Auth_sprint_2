@@ -5,10 +5,12 @@ from flask import Blueprint, abort
 from flask_jwt_extended import get_jwt, jwt_required
 from flask_restx import Api, Resource, reqparse
 from flask_security.registerable import register_user
+from opentracing_decorator import Tracing
 
 from src.models.user import USER_DATASTORE, User
 from src.services.auth import auth_service
 from src.utils.rate_limit import rate_limit
+from src.utils.jaeger import jaeger_tracer
 
 account = Blueprint("account", __name__)
 api = Api(account)
@@ -20,11 +22,14 @@ login_post_parser.add_argument(
 )
 login_post_parser.add_argument("User-Agent", location="headers")
 
+tracing = Tracing(tracer=jaeger_tracer)
+
 
 @api.route("/login")
 class Login(Resource):
     """Endpoint to user login."""
 
+    @tracing.trace(operation_name="Login")
     @rate_limit()
     @api.expect(login_post_parser)
     def post(self):
@@ -55,6 +60,7 @@ class Login(Resource):
 class LoginHistory(Resource):
     """Endpoint to represent user login history."""
 
+    @tracing.trace(operation_name="History")
     @rate_limit()
     @jwt_required()
     def get(self):
@@ -79,7 +85,7 @@ credentials_change_put.add_argument(
 
 @api.route("/account_credentials")
 class CredentialsChange(Resource):
-
+    @tracing.trace(operation_name="Credentials")
     @rate_limit()
     @api.expect(credentials_change_put)
     @jwt_required()
@@ -116,6 +122,7 @@ logout_post_parser.add_argument(
 class Logout(Resource):
     """Endpoint to user logout."""
 
+    @tracing.trace(operation_name="Logout")
     @rate_limit()
     @api.expect(logout_post_parser)
     @jwt_required()
@@ -150,6 +157,7 @@ register_post_parser.add_argument(
 class Register(Resource):
     """Endpoint to sign up."""
 
+    @tracing.trace(operation_name="Register")
     @rate_limit()
     @api.expect(register_post_parser)
     def post(self):
@@ -175,6 +183,7 @@ refresh_post_parser.add_argument("Authorization", location="headers")
 class Refresh(Resource):
     """Endpoint to refresh JWT tokens."""
 
+    @tracing.trace(operation_name="Refresh")
     @rate_limit()
     @api.expect(refresh_post_parser)
     @jwt_required(refresh=True)

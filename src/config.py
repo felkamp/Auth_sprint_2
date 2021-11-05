@@ -13,6 +13,7 @@ class Settings:
     API_URL: str = os.getenv("API_URL", "http://auth:5000")
     APP_NAME: str = os.getenv("APP_NAME", "Auth service")
     DEBUG: bool = bool(int(os.getenv("DEBUG", 0)))
+    TRACE_ON: bool = bool(int(os.getenv("TRACE_ON", 0)))
     PROPAGATE_EXCEPTIONS: bool = bool(int(os.getenv("PROPAGATE_EXCEPTIONS", 1)))
 
     SECRET_KEY: str = os.getenv("SECRET_KEY")
