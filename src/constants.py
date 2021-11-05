@@ -1,6 +1,5 @@
-import string
 import operator
-
+import string
 from enum import Enum
 
 
@@ -20,8 +19,4 @@ class MathOperator(Enum):
     SUB = operator.sub
 
 
-operators_mapping = {
-    '+': operator.add,
-    '-': operator.sub,
-    '*': operator.mul
-}
+operators_mapping = {"+": operator.add, "-": operator.sub, "*": operator.mul}

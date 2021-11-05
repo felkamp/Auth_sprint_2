@@ -1,5 +1,4 @@
 import random
-
 from functools import wraps
 from http import HTTPStatus
 from uuid import UUID
@@ -7,8 +6,8 @@ from uuid import UUID
 from flask import abort
 from flask_jwt_extended import get_jwt
 
-from src.models.user import Permission
 from src.constants import operators_mapping
+from src.models.user import Permission
 
 
 def is_valid_uuid(uuid, version=4):

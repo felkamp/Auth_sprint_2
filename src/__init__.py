@@ -15,7 +15,7 @@ from src.models.user import Role, User
 from src.services import oauth
 from src.utils.jaeger import jaeger_tracer
 
-from .config import Settings, OAuthSettings
+from .config import OAuthSettings, Settings
 
 login_manager = LoginManager()
 oauth_client = OAuth()
@@ -54,7 +54,7 @@ def create_app(config=None):
         validate=Settings.RESTX_VALIDATE,
     )
 
-    app.register_blueprint(blueprint=blueprint, url_prefix='/')
+    app.register_blueprint(blueprint=blueprint, url_prefix="/")
     app.register_blueprint(blueprint=account)
     app.register_blueprint(blueprint=admin)
 

@@ -1,5 +1,5 @@
 from src.db.postgres import db
-from src.models.user import Role, User, roles_users, SocialAccount
+from src.models.user import Role, SocialAccount, User, roles_users
 
 
 class UserService:

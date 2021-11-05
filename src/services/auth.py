@@ -2,8 +2,7 @@ import time
 from datetime import datetime
 from typing import Optional
 
-from flask_jwt_extended import (create_access_token, create_refresh_token,
-                                decode_token)
+from flask_jwt_extended import create_access_token, create_refresh_token, decode_token
 from flask_security.utils import hash_password, verify_password
 from loguru import logger
 from marshmallow import Schema, fields
@@ -79,8 +78,8 @@ class AuthService:
         }
 
     def create_user_auth_log(
-            self, user_id: str, device: str,
-            user_date_of_birth: datetime.date):
+        self, user_id: str, device: str, user_date_of_birth: datetime.date
+    ):
         """Create AuthorizationUserLog record after successful user auth."""
         try:
             auth_log = AuthorizationUserLog(

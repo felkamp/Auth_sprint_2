@@ -1,29 +1,25 @@
 import uuid
-
 from http import HTTPStatus
 from typing import Optional
 
-from flask import Blueprint, abort
+from flask import Blueprint, abort, redirect, url_for
 from flask_jwt_extended import get_jwt, jwt_required
-from flask_restx import Resource, reqparse, fields, Namespace
+from flask_restx import Namespace, Resource, fields, reqparse
 from flask_security.registerable import register_user
-from flask import url_for, redirect
-
 from opentracing_decorator import Tracing
 
 from src.db.redis import redis_db
-from src.models.user import User, SocialAccount, SocialAccountName
+from src.models.user import SocialAccount, SocialAccountName, User
 from src.services.auth import auth_service
-from src.services.user import user_service
 from src.services.oauth import get_google_oauth_client
-from src.utils.utils import get_simple_math_problem
-from src.utils.rate_limit import rate_limit
+from src.services.user import user_service
 from src.utils.jaeger import jaeger_tracer
+from src.utils.rate_limit import rate_limit
+from src.utils.utils import get_simple_math_problem
 
 account = Blueprint("account", __name__)
 
-api = Namespace(
-    name="account", description="Account API for Authentication service")
+api = Namespace(name="account", description="Account API for Authentication service")
 
 msg_response_model = api.model(
     "Msg data response",
@@ -76,8 +72,7 @@ class Login(Resource):
         jwt_tokens = auth_service.get_jwt_tokens(authenticated_user)
 
         user_agent = args.get("User-Agent")
-        auth_service.save_refresh_token_in_redis(
-            jwt_tokens.get("refresh"), user_agent)
+        auth_service.save_refresh_token_in_redis(jwt_tokens.get("refresh"), user_agent)
         auth_service.create_user_auth_log(
             user_id=authenticated_user.id,
             device=user_agent,
@@ -147,7 +142,6 @@ class CredentialsChange(Resource):
 
 @api.route("/social_accounts/<string:id>")
 class UserSocialAccounts(Resource):
-
     @rate_limit()
     @jwt_required()
     def delete(self, id):
@@ -261,13 +255,12 @@ class Refresh(Resource):
 
 @api.route("/google_login")
 class GoogleLogin(Resource):
-
     @rate_limit()
     def get(self):
         """Authenticate using google."""
 
         google = get_google_oauth_client()
-        redirect_uri = url_for('api.account_google_authorize', _external=True)
+        redirect_uri = url_for("api.account_google_authorize", _external=True)
         return google.authorize_redirect(redirect_uri)
 
 
@@ -277,26 +270,25 @@ google_authorize_parser.add_argument("User-Agent", location="headers")
 
 @api.route("/google_authorize")
 class GoogleAuthorize(Resource):
-
     @rate_limit()
     def get(self):
         """Google authorization processing."""
 
         args = google_authorize_parser.parse_args()
         google = get_google_oauth_client()
-        resp = google.get('userinfo', token=google.authorize_access_token())
+        resp = google.get("userinfo", token=google.authorize_access_token())
         resp.raise_for_status()
 
         profile_data = resp.json()
-        if 'id' not in profile_data or 'email' not in profile_data:
+        if "id" not in profile_data or "email" not in profile_data:
             abort(HTTPStatus.BAD_REQUEST)
-        if User.query.filter_by(email=profile_data.get('email')).first():
-            return redirect(url_for('api.account_login', _external=False))
+        if User.query.filter_by(email=profile_data.get("email")).first():
+            return redirect(url_for("api.account_login", _external=False))
 
         social_account = SocialAccount.get_or_create(
-            social_id=profile_data.get('id'),
+            social_id=profile_data.get("id"),
             social_name=SocialAccountName.GOOGLE,
-            email=profile_data.get('email')
+            email=profile_data.get("email"),
         )
         if not social_account:
             return abort(HTTPStatus.FORBIDDEN)
@@ -306,8 +298,9 @@ class GoogleAuthorize(Resource):
         user_agent = args.get("User-Agent")
         auth_service.save_refresh_token_in_redis(jwt_tokens.get("refresh"), user_agent)
         auth_service.create_user_auth_log(
-            user_id=authenticated_user.id, device=user_agent,
-            user_date_of_birth=authenticated_user.date_of_birth
+            user_id=authenticated_user.id,
+            device=user_agent,
+            user_date_of_birth=authenticated_user.date_of_birth,
         )
 
         return jwt_tokens
@@ -315,14 +308,13 @@ class GoogleAuthorize(Resource):
 
 @api.route("/captcha")
 class Captcha(Resource):
-
     @rate_limit()
     def get(self):
         """Get simple math problem."""
         problem_id = str(uuid.uuid4())
         problem, answer = get_simple_math_problem()
         redis_db.setex(name=problem_id, time=60 * 5, value=answer)
-        return {'id': problem_id, 'math_problem': problem}
+        return {"id": problem_id, "math_problem": problem}
 
 
 captcha_post_parser = reqparse.RequestParser()
@@ -332,7 +324,6 @@ captcha_post_parser.add_argument("user_answer", required=True, location="form")
 
 @api.route("/check_captcha")
 class Captcha(Resource):
-
     @rate_limit()
     def post(self):
         """Check user answer for math problem."""
@@ -343,7 +334,7 @@ class Captcha(Resource):
         if not (real_answer := redis_db.get(problem_id)):
             abort(HTTPStatus.NOT_FOUND)
 
-        msg = 'ok' if str(user_answer) == str(real_answer.decode("utf-8")) else 'error'
+        msg = "ok" if str(user_answer) == str(real_answer.decode("utf-8")) else "error"
         redis_db.delete(problem_id)
 
-        return {'msg': msg}
+        return {"msg": msg}

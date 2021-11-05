@@ -11,8 +11,7 @@ from src.utils.utils import check_permission, is_valid_uuid
 
 admin = Blueprint("admin", __name__)
 
-api = Namespace(
-    name="admin", description="Admin API for Authentication service")
+api = Namespace(name="admin", description="Admin API for Authentication service")
 
 msg_response_model = api.model(
     "Msg data response", {"msg": fields.String(default="Role deleted!")}
@@ -29,10 +28,8 @@ role_response_model = api.model(
 )
 
 roles_list_get_parser = reqparse.RequestParser(bundle_errors=True)
-roles_list_get_parser.add_argument(
-    "page", required=True, type=int, location="args")
-roles_list_get_parser.add_argument(
-    "size", required=True, type=int, location="args")
+roles_list_get_parser.add_argument("page", required=True, type=int, location="args")
+roles_list_get_parser.add_argument("size", required=True, type=int, location="args")
 
 roles_list_post_parser = reqparse.RequestParser(bundle_errors=True)
 roles_list_post_parser.add_argument("name", required=True, location="form")

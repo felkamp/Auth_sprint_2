@@ -1,16 +1,16 @@
 import uuid
-
 from datetime import datetime
 from random import choice
 
-from flask_security.registerable import register_user
 from flask_security import RoleMixin, SQLAlchemyUserDatastore, UserMixin
+from flask_security.registerable import register_user
 from flask_security.utils import hash_password
+from sqlalchemy import ForeignKeyConstraint, UniqueConstraint
 from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy import UniqueConstraint, ForeignKeyConstraint
 
-from src.db.postgres import db
 from src.constants import Const
+from src.db.postgres import db
+
 from .mixins import AuditMixin
 
 roles_users = db.Table(
@@ -26,9 +26,10 @@ roles_users = db.Table(
         onupdate=datetime.now,
     ),
     db.ForeignKeyConstraint(
-        ['user_id', 'user_date_of_birth'],
-        ["users.id", "users.date_of_birth"], name='fk_user_id_birth'
-    )
+        ["user_id", "user_date_of_birth"],
+        ["users.id", "users.date_of_birth"],
+        name="fk_user_id_birth",
+    ),
 )
 
 
@@ -41,7 +42,7 @@ class Permission:
 
 
 class SocialAccountName:
-    GOOGLE = 'google'
+    GOOGLE = "google"
 
 
 def create_partition_for_users(target, connection, **kw) -> None:
@@ -74,11 +75,11 @@ class User(db.Model, AuditMixin, UserMixin):
 
     __tablename__ = "users"
     __table_args__ = (
-        UniqueConstraint('id', 'email', 'date_of_birth'),
+        UniqueConstraint("id", "email", "date_of_birth"),
         {
-            'postgresql_partition_by': 'RANGE (date_of_birth)',
-            'listeners': [('after_create', create_partition_for_users)],
-        }
+            "postgresql_partition_by": "RANGE (date_of_birth)",
+            "listeners": [("after_create", create_partition_for_users)],
+        },
     )
 
     id = db.Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
@@ -86,8 +87,7 @@ class User(db.Model, AuditMixin, UserMixin):
     password = db.Column(db.String(255), nullable=False)
     active = db.Column(db.Boolean())
     date_of_birth = db.Column(
-        db.Date, primary_key=True,
-        default=datetime.today().date()
+        db.Date, primary_key=True, default=datetime.today().date()
     )
     roles = db.relationship(
         "Role",
@@ -101,17 +101,18 @@ class User(db.Model, AuditMixin, UserMixin):
 
     @staticmethod
     def generate_password(size=8, chars=Const.ALPHABET.value):
-        return ''.join(choice(chars) for _ in range(size))
+        return "".join(choice(chars) for _ in range(size))
 
 
 class SocialAccount(db.Model):
     """Model to represent User social account."""
-    __tablename__ = 'social_accounts'
+
+    __tablename__ = "social_accounts"
     __table_args__ = (
         ForeignKeyConstraint(
-            ['user_id', 'user_date_of_birth'],
+            ["user_id", "user_date_of_birth"],
             ["users.id", "users.date_of_birth"],
-            name='fk_user_id_birth_date'
+            name="fk_user_id_birth_date",
         ),
     )
     id = db.Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
@@ -122,29 +123,31 @@ class SocialAccount(db.Model):
     social_name = db.Column(db.Text, nullable=False)
 
     __table_args__ = (
-        db.UniqueConstraint('social_id', 'social_name', name='social_pk'),
+        db.UniqueConstraint("social_id", "social_name", name="social_pk"),
     )
 
     def __repr__(self):
-        return f'<SocialAccount {self.social_name}:{self.user_id}>'
+        return f"<SocialAccount {self.social_name}:{self.user_id}>"
 
     @staticmethod
     def get_or_create(social_id: str, social_name: str, email: str):
         """Get or create social account instance."""
 
         social_account = SocialAccount.query.filter_by(
-            social_id=social_id, social_name=social_name,
+            social_id=social_id,
+            social_name=social_name,
         ).first()
         if social_account is not None:
             return social_account
 
         user = register_user(
-            email=email,
-            password=hash_password(User.generate_password())
+            email=email, password=hash_password(User.generate_password())
         )
         social_account = SocialAccount(
-            social_id=social_id, social_name=social_name, user_id=user.id,
-            user_date_of_birth=user.date_of_birth
+            social_id=social_id,
+            social_name=social_name,
+            user_id=user.id,
+            user_date_of_birth=user.date_of_birth,
         )
         db.session.add(social_account)
         db.session.commit()
@@ -168,9 +171,9 @@ class AuthorizationUserLog(db.Model, AuditMixin):
     __tablename__ = "auth_user_logs"
     __table_args__ = (
         ForeignKeyConstraint(
-            ['user_id', 'user_date_of_birth'],
+            ["user_id", "user_date_of_birth"],
             ["users.id", "users.date_of_birth"],
-            name='fk_user_id_birth'
+            name="fk_user_id_birth",
         ),
     )
     id = db.Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
