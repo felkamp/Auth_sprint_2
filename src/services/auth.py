@@ -1,4 +1,5 @@
 import time
+from datetime import datetime
 from typing import Optional
 
 from flask_jwt_extended import (create_access_token, create_refresh_token,
@@ -77,10 +78,16 @@ class AuthService:
             "refresh": refresh_token,
         }
 
-    def create_user_auth_log(self, user_id: str, device: str):
+    def create_user_auth_log(
+            self, user_id: str, device: str,
+            user_date_of_birth: datetime.date):
         """Create AuthorizationUserLog record after successful user auth."""
         try:
-            auth_log = AuthorizationUserLog(user_id=user_id, device=device)
+            auth_log = AuthorizationUserLog(
+                user_id=user_id,
+                device=device,
+                user_date_of_birth=user_date_of_birth,
+            )
             db.session.add(auth_log)
             db.session.commit()
         except Exception as error:
