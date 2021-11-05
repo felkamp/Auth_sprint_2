@@ -1,5 +1,5 @@
 from src.db.postgres import db
-from src.models.user import Role, User, roles_users
+from src.models.user import Role, User, roles_users, SocialAccount
 
 
 class UserService:
@@ -17,6 +17,10 @@ class UserService:
 
     def delete_role(self, user: User, role: Role) -> None:
         user.roles.remove(role)
+        db.session.commit()
+
+    def delete_socail_account(self, id: str):
+        SocialAccount.query.filter_by(id=id).delete()
         db.session.commit()
 
 
