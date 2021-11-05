@@ -259,7 +259,7 @@ class GoogleLogin(Resource):
         """Authenticate using google."""
 
         google = get_google_oauth_client()
-        redirect_uri = url_for('account.google_authorize', _external=True)
+        redirect_uri = url_for('api.account_google_authorize', _external=True)
         return google.authorize_redirect(redirect_uri)
 
 
@@ -283,22 +283,23 @@ class GoogleAuthorize(Resource):
         if 'id' not in profile_data or 'email' not in profile_data:
             abort(HTTPStatus.BAD_REQUEST)
         if User.query.filter_by(email=profile_data.get('email')).first():
-            return redirect(url_for('account.login', _external=False))
+            return redirect(url_for('api.account_login', _external=False))
 
-        social_accoint = SocialAccount.get_or_create(
+        social_account = SocialAccount.get_or_create(
             social_id=profile_data.get('id'),
             social_name=SocialAccountName.GOOGLE,
             email=profile_data.get('email')
         )
-        if not social_accoint:
+        if not social_account:
             return abort(HTTPStatus.FORBIDDEN)
 
-        authenticated_user = social_accoint.user
+        authenticated_user = User.query.filter_by(id=social_account.user_id).first()
         jwt_tokens = auth_service.get_jwt_tokens(authenticated_user)
         user_agent = args.get("User-Agent")
         auth_service.save_refresh_token_in_redis(jwt_tokens.get("refresh"), user_agent)
         auth_service.create_user_auth_log(
-            user_id=authenticated_user.id, device=user_agent
+            user_id=authenticated_user.id, device=user_agent,
+            user_date_of_birth=authenticated_user.date_of_birth
         )
 
         return jwt_tokens

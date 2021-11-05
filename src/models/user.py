@@ -107,15 +107,17 @@ class User(db.Model, AuditMixin, UserMixin):
 class SocialAccount(db.Model):
     """Model to represent User social account."""
     __tablename__ = 'social_accounts'
-
+    __table_args__ = (
+        ForeignKeyConstraint(
+            ['user_id', 'user_date_of_birth'],
+            ["users.id", "users.date_of_birth"],
+            name='fk_user_id_birth_date'
+        ),
+    )
     id = db.Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    user_id = db.Column(
-        UUID(as_uuid=True), db.ForeignKey('users.id'),
-        nullable=False,
-    )
-    user = db.relationship(
-        User, backref=db.backref('social_accounts', lazy=True),
-    )
+    user_id = db.Column(UUID(as_uuid=True), nullable=False)
+    user_date_of_birth = db.Column(db.Date, nullable=False)
+
     social_id = db.Column(db.Text, nullable=False)
     social_name = db.Column(db.Text, nullable=False)
 
@@ -141,7 +143,8 @@ class SocialAccount(db.Model):
             password=hash_password(User.generate_password())
         )
         social_account = SocialAccount(
-            social_id=social_id, social_name=social_name, user_id=user.id
+            social_id=social_id, social_name=social_name, user_id=user.id,
+            user_date_of_birth=user.date_of_birth
         )
         db.session.add(social_account)
         db.session.commit()
