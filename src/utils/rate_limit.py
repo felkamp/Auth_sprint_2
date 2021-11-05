@@ -8,7 +8,7 @@ from loguru import logger
 from src.db.redis import redis_db
 
 
-def rate_limit(limit=10, interval=60):
+def rate_limit(limit=20, interval=60):
     """Rate limit for API endpoints.
 
     If the user has exceeded the limit, then return the response 429.

@@ -7,7 +7,7 @@ from flask_jwt_extended import create_access_token
 from src.models.user import Permission
 from tests.functional.test_cases.base import BaseUnitTest
 from tests.functional.test_data import data
-from tests.functional.utils.utils import api_url_wth_path as _u
+from tests.functional.utils.utils import admin_url_path as _u
 
 
 class TestPermissions(BaseUnitTest, unittest.TestCase):

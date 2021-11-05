@@ -9,7 +9,7 @@ from src.constants import CredentialType
 from src.models.user import User
 from tests.functional.test_cases.base import BaseUnitTest
 from tests.functional.test_data import data
-from tests.functional.utils.utils import api_url_wth_path as _u
+from tests.functional.utils.utils import account_url_path as _u
 
 
 class TestAuth(BaseUnitTest, unittest.TestCase):

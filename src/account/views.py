@@ -12,7 +12,7 @@ from flask import url_for, redirect
 from opentracing_decorator import Tracing
 
 from src.db.redis import redis_db
-from src.models.user import USER_DATASTORE, User, SocialAccount, SocialAccountName
+from src.models.user import User, SocialAccount, SocialAccountName
 from src.services.auth import auth_service
 from src.services.user import user_service
 from src.services.oauth import get_google_oauth_client
@@ -218,8 +218,7 @@ class Register(Resource):
         args = register_post_parser.parse_args()
         email = args.get("email")
         password = args.get("password")
-
-        if USER_DATASTORE.get_user(identifier=email):
+        if User.query.filter_by(email=email).first():
             return abort(HTTPStatus.BAD_REQUEST, "This email address already exists!")
         register_user(email=email, password=password)
         return {

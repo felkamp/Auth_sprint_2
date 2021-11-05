@@ -54,7 +54,7 @@ def create_app(config=None):
         validate=Settings.RESTX_VALIDATE,
     )
 
-    app.register_blueprint(blueprint=blueprint)
+    app.register_blueprint(blueprint=blueprint, url_prefix='/')
     app.register_blueprint(blueprint=account)
     app.register_blueprint(blueprint=admin)
 
