@@ -1,7 +1,8 @@
 from authlib.integrations.flask_client import OAuth
-from flask import Flask
+from flask import Blueprint, Flask
 from flask_jwt_extended import JWTManager
 from flask_login import LoginManager
+from flask_restx import Api
 from flask_security import Security, SQLAlchemyUserDatastore
 
 from src.account.views import account
@@ -35,8 +36,21 @@ def create_app(config=None):
     JWTManager(app)
     Security(app, SQLAlchemyUserDatastore(db, User, Role), register_blueprint=False)
 
-    app.register_blueprint(account, url_prefix='/account')
-    app.register_blueprint(admin, url_prefix='/admin')
+    blueprint = Blueprint("api", __name__)
+    api = Api(
+        blueprint,
+        title=Settings.APP_NAME,
+        description=Settings.APP_DESCRIPTION,
+        doc=Settings.API_DOC_PREFIX,
+        validate=Settings.RESTX_VALIDATE,
+    )
+
+    app.register_blueprint(blueprint=blueprint)
+    app.register_blueprint(blueprint=account)
+    app.register_blueprint(blueprint=admin)
+
+    api.add_namespace(auth_api)
+    api.add_namespace(admin_api)
 
     return app
 
