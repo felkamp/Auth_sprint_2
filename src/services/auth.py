@@ -153,5 +153,30 @@ class AuthService:
         if credential_type == CredentialType.PASSWORD.value:
             return self._change_password(user, old_credential, new_credential)
 
+    def get_user_tokens(
+            self, user: User,
+            user_agent: Optional[str] = None,
+            save_refresh: bool = True,
+            save_log: bool = True
+    ):
+        """
+        Get user tokens.
+        save_refresh - save refresh token in redis
+        save_log - save log for user login
+        """
+
+        jwt_tokens = self.get_jwt_tokens(user)
+
+        if save_refresh:
+            self.save_refresh_token_in_redis(jwt_tokens.get("refresh"), user_agent)
+
+        if save_log:
+            self.create_user_auth_log(
+                user_id=user.id,
+                device=user_agent,
+                user_date_of_birth=user.date_of_birth,
+            )
+        return jwt_tokens
+
 
 auth_service = AuthService()

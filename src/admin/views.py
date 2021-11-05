@@ -10,8 +10,7 @@ from src.services.user import user_service
 from src.utils.utils import check_permission, is_valid_uuid
 
 admin = Blueprint("admin", __name__)
-
-api = Namespace(name="admin", description="Admin API for Authentication service")
+api = Namespace(name="admin", description="API for administration")
 
 msg_response_model = api.model(
     "Msg data response", {"msg": fields.String(default="Role deleted!")}
