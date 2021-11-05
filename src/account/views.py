@@ -1,3 +1,5 @@
+import uuid
+
 from http import HTTPStatus
 from typing import Optional
 
@@ -7,10 +9,12 @@ from flask_restx import Api, Resource, reqparse
 from flask_security.registerable import register_user
 from flask import url_for, redirect
 
+from src.db.redis import redis_db
 from src.models.user import USER_DATASTORE, User, SocialAccount, SocialAccountName
 from src.services.auth import auth_service
 from src.services.user import user_service
 from src.services.oauth import get_google_oauth_client
+from src.utils.utils import get_simple_math_problem
 from src.utils.rate_limit import rate_limit
 
 account = Blueprint("account", __name__)
@@ -268,3 +272,39 @@ class GoogleAuthorize(Resource):
         )
 
         return jwt_tokens
+
+
+@api.route("/captcha")
+class Captcha(Resource):
+
+    @rate_limit()
+    def get(self):
+        """Get simple math problem."""
+        problem_id = str(uuid.uuid4())
+        problem, answer = get_simple_math_problem()
+        redis_db.setex(name=problem_id, time=60 * 5, value=answer)
+        return {'id': problem_id, 'math_problem': problem, "answer": answer}
+
+
+captcha_post_parser = reqparse.RequestParser()
+captcha_post_parser.add_argument("problem_id", required=True, location="form")
+captcha_post_parser.add_argument("user_answer", required=True, location="form")
+
+
+@api.route("/check_captcha")
+class Captcha(Resource):
+
+    @rate_limit()
+    def post(self):
+        """Check user answer for math problem."""
+        args = captcha_post_parser.parse_args()
+        problem_id = args.get("problem_id")
+        user_answer = args.get("user_answer")
+
+        if not (real_answer := redis_db.get(problem_id)):
+            abort(HTTPStatus.NOT_FOUND)
+
+        msg = 'ok' if str(user_answer) == str(real_answer.decode("utf-8")) else 'error'
+        redis_db.delete(problem_id)
+
+        return {'msg': msg}

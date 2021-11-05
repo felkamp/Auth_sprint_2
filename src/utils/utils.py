@@ -1,3 +1,5 @@
+import random
+
 from functools import wraps
 from http import HTTPStatus
 from uuid import UUID
@@ -6,6 +8,7 @@ from flask import abort
 from flask_jwt_extended import get_jwt
 
 from src.models.user import Permission
+from src.constants import operators_mapping
 
 
 def is_valid_uuid(uuid, version=4):
@@ -32,3 +35,13 @@ def check_permission(permission: Permission):
         return wrapped
 
     return decorator
+
+
+def get_simple_math_problem() -> (str, int):
+    num_1 = random.randint(1, 10)
+    num_2 = random.randint(1, 10)
+    op = random.choice(list(operators_mapping.keys()))
+
+    problem = f"{num_1} {op} {num_2}"
+    answer = operators_mapping.get(op)(num_1, num_2)
+    return problem, answer
