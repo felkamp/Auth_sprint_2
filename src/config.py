@@ -11,9 +11,13 @@ class Settings:
     """Project configuration."""
 
     API_URL: str = os.getenv("API_URL", "http://auth:5000")
+    API_DOC_PREFIX: str = os.getenv("API_URL", "/openapi")
     APP_NAME: str = os.getenv("APP_NAME", "Auth service")
+    APP_DESCRIPTION: str = os.getenv(
+        "APP_DESCRIPTION", "API authentication service")
     DEBUG: bool = bool(int(os.getenv("DEBUG", 0)))
-    PROPAGATE_EXCEPTIONS: bool = bool(int(os.getenv("PROPAGATE_EXCEPTIONS", 1)))
+    PROPAGATE_EXCEPTIONS: bool = bool(
+        int(os.getenv("PROPAGATE_EXCEPTIONS", 1)))
 
     SECRET_KEY: str = os.getenv("SECRET_KEY")
     SECURITY_PASSWORD_SALT: str = os.getenv("SECURITY_PASSWORD_SALT")
@@ -34,8 +38,19 @@ class Settings:
         int(os.getenv("SQLALCHEMY_TRACK_MODIFICATIONS", 0))
     )
 
+    RESTX_VALIDATE: bool = bool(int(os.getenv("RESTX_VALIDATE", 1)))
+
 
 class RedisSettings:
     REDIS_HOST: str = os.getenv("REDIS_HOST")
     REDIS_PORT: int = int(os.getenv("REDIS_PORT"))
     REDIS_DB: int = int(os.getenv("REDIS_DB"))
+
+
+class OAuthSettings:
+    GOOGLE_CLIENT_ID: str = os.getenv("GOOGLE_CLIENT_ID")
+    GOOGLE_CLIENT_SECRET: str = os.getenv("GOOGLE_CLIENT_SECRET")
+    GOOGLE_ACCESS_TOKEN_URL: str = os.getenv("GOOGLE_ACCESS_TOKEN_URL")
+    GOOGLE_AUTHORIZE_URL: str = os.getenv("GOOGLE_AUTHORIZE_URL")
+    GOOGLE_API_BASE_URL: str = os.getenv("GOOGLE_API_BASE_URL")
+

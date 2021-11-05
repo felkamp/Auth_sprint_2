@@ -1,12 +1,16 @@
 import uuid
-from datetime import datetime
 
+from datetime import datetime
+from random import choice
+
+from flask_security.registerable import register_user
 from flask_security import RoleMixin, SQLAlchemyUserDatastore, UserMixin
+from flask_security.utils import hash_password
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy import UniqueConstraint, ForeignKeyConstraint
 
 from src.db.postgres import db
-
+from src.constants import Const
 from .mixins import AuditMixin
 
 roles_users = db.Table(
@@ -34,6 +38,10 @@ class Permission:
     UPDATE = 16
     DELETE = 32
     ADMIN = 255
+
+
+class SocialAccountName:
+    GOOGLE = 'google'
 
 
 def create_partition_for_users(target, connection, **kw) -> None:
@@ -90,6 +98,55 @@ class User(db.Model, AuditMixin, UserMixin):
 
     def __repr__(self):
         return f"<User {self.email}>"
+
+    @staticmethod
+    def generate_password(size=8, chars=Const.ALPHABET.value):
+        return ''.join(choice(chars) for _ in range(size))
+
+
+class SocialAccount(db.Model):
+    """Model to represent User social account."""
+    __tablename__ = 'social_accounts'
+
+    id = db.Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id = db.Column(
+        UUID(as_uuid=True), db.ForeignKey('users.id'),
+        nullable=False,
+    )
+    user = db.relationship(
+        User, backref=db.backref('social_accounts', lazy=True),
+    )
+    social_id = db.Column(db.Text, nullable=False)
+    social_name = db.Column(db.Text, nullable=False)
+
+    __table_args__ = (
+        db.UniqueConstraint('social_id', 'social_name', name='social_pk'),
+    )
+
+    def __repr__(self):
+        return f'<SocialAccount {self.social_name}:{self.user_id}>'
+
+    @staticmethod
+    def get_or_create(social_id: str, social_name: str, email: str):
+        """Get or create social account instance."""
+
+        social_account = SocialAccount.query.filter_by(
+            social_id=social_id, social_name=social_name,
+        ).first()
+        if social_account is not None:
+            return social_account
+
+        user = register_user(
+            email=email,
+            password=hash_password(User.generate_password())
+        )
+        social_account = SocialAccount(
+            social_id=social_id, social_name=social_name, user_id=user.id
+        )
+        db.session.add(social_account)
+        db.session.commit()
+
+        return social_account
 
 
 class Role(db.Model, AuditMixin, RoleMixin):
