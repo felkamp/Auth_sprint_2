@@ -39,3 +39,12 @@ class RedisSettings:
     REDIS_HOST: str = os.getenv("REDIS_HOST")
     REDIS_PORT: int = int(os.getenv("REDIS_PORT"))
     REDIS_DB: int = int(os.getenv("REDIS_DB"))
+
+
+class OAuthSettings:
+    GOOGLE_CLIENT_ID: str = os.getenv("GOOGLE_CLIENT_ID")
+    GOOGLE_CLIENT_SECRET: str = os.getenv("GOOGLE_CLIENT_SECRET")
+    GOOGLE_ACCESS_TOKEN_URL: str = os.getenv("GOOGLE_ACCESS_TOKEN_URL")
+    GOOGLE_AUTHORIZE_URL: str = os.getenv("GOOGLE_AUTHORIZE_URL")
+    GOOGLE_API_BASE_URL: str = os.getenv("GOOGLE_API_BASE_URL")
+
