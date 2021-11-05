@@ -16,8 +16,8 @@ class Settings:
     APP_DESCRIPTION: str = os.getenv(
         "APP_DESCRIPTION", "API authentication service")
     DEBUG: bool = bool(int(os.getenv("DEBUG", 0)))
-    PROPAGATE_EXCEPTIONS: bool = bool(
-        int(os.getenv("PROPAGATE_EXCEPTIONS", 1)))
+    TRACE_ON: bool = bool(int(os.getenv("TRACE_ON", 0)))
+    PROPAGATE_EXCEPTIONS: bool = bool(int(os.getenv("PROPAGATE_EXCEPTIONS", 1)))
 
     SECRET_KEY: str = os.getenv("SECRET_KEY")
     SECURITY_PASSWORD_SALT: str = os.getenv("SECURITY_PASSWORD_SALT")

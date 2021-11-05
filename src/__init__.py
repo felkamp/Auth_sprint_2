@@ -1,5 +1,5 @@
 from authlib.integrations.flask_client import OAuth
-from flask import Blueprint, Flask
+from flask import Blueprint, Flask, request
 from flask_jwt_extended import JWTManager
 from flask_login import LoginManager
 from flask_restx import Api
@@ -13,6 +13,7 @@ from src.db.postgres import db, init_db
 from src.db.redis import init_redis_db
 from src.models.user import Role, User
 from src.services import oauth
+from src.utils.jaeger import jaeger_tracer
 
 from .config import Settings, OAuthSettings
 
@@ -22,6 +23,14 @@ oauth_client = OAuth()
 
 def create_app(config=None):
     app = Flask(__name__)
+
+    if Settings.TRACE_ON:
+
+        @app.before_request
+        def before_request():
+            request_id = request.headers.get("X-Request-Id")
+            if not request_id:
+                raise RuntimeError("request id is requred")
 
     login_manager.login_view = "account.login"
     login_manager.init_app(app)
@@ -56,3 +65,5 @@ def create_app(config=None):
 
 
 app = create_app()
+
+jaeger_tracer.close()

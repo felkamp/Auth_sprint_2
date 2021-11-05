@@ -9,6 +9,8 @@ from flask_restx import Resource, reqparse, fields, Namespace
 from flask_security.registerable import register_user
 from flask import url_for, redirect
 
+from opentracing_decorator import Tracing
+
 from src.db.redis import redis_db
 from src.models.user import USER_DATASTORE, User, SocialAccount, SocialAccountName
 from src.services.auth import auth_service
@@ -16,6 +18,7 @@ from src.services.user import user_service
 from src.services.oauth import get_google_oauth_client
 from src.utils.utils import get_simple_math_problem
 from src.utils.rate_limit import rate_limit
+from src.utils.jaeger import jaeger_tracer
 
 account = Blueprint("account", __name__)
 
@@ -40,18 +43,20 @@ tokens_response_model = api.model(
 )
 
 login_post_parser = reqparse.RequestParser()
-login_post_parser.add_argument(
-    "email", required=True, help="Email cannot be blank!")
+login_post_parser.add_argument("email", required=True, help="Email cannot be blank!")
 login_post_parser.add_argument(
     "password", required=True, help="Password cannot be blank!"
 )
 login_post_parser.add_argument("User-Agent", location="headers")
+
+tracing = Tracing(tracer=jaeger_tracer)
 
 
 @api.route("/login")
 class Login(Resource):
     """Endpoint to user login."""
 
+    @tracing.trace(operation_name="Login")
     @rate_limit()
     @api.expect(login_post_parser)
     @api.marshal_with(tokens_response_model, code=HTTPStatus.OK)
@@ -86,6 +91,7 @@ class Login(Resource):
 class LoginHistory(Resource):
     """Endpoint to represent user login history."""
 
+    @tracing.trace(operation_name="History")
     @rate_limit()
     @jwt_required()
     def get(self):
@@ -112,6 +118,7 @@ credentials_change_put.add_argument(
 class CredentialsChange(Resource):
     """Endpoint to change account credentials."""
 
+    @tracing.trace(operation_name="Credentials")
     @rate_limit()
     @api.expect(credentials_change_put)
     @jwt_required()
@@ -166,6 +173,7 @@ logout_post_parser.add_argument(
 class Logout(Resource):
     """Endpoint to user logout."""
 
+    @tracing.trace(operation_name="Logout")
     @rate_limit()
     @api.expect(logout_post_parser)
     @api.marshal_with(msg_response_model, code=HTTPStatus.OK)
@@ -191,8 +199,7 @@ class Logout(Resource):
 
 
 register_post_parser = reqparse.RequestParser()
-register_post_parser.add_argument(
-    "email", required=True, help="Email cannot be blank!")
+register_post_parser.add_argument("email", required=True, help="Email cannot be blank!")
 register_post_parser.add_argument(
     "password", required=True, help="Password cannot be blank!"
 )
@@ -202,6 +209,7 @@ register_post_parser.add_argument(
 class Register(Resource):
     """Endpoint to sign up."""
 
+    @tracing.trace(operation_name="Register")
     @rate_limit()
     @api.expect(register_post_parser)
     @api.marshal_with(msg_response_model, code=HTTPStatus.OK)
@@ -228,6 +236,7 @@ refresh_post_parser.add_argument("Authorization", location="headers")
 class Refresh(Resource):
     """Endpoint to refresh JWT tokens."""
 
+    @tracing.trace(operation_name="Refresh")
     @rate_limit()
     @api.expect(refresh_post_parser)
     @jwt_required(refresh=True)
