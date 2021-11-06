@@ -19,8 +19,8 @@ class UserService:
         user.roles.remove(role)
         db.session.commit()
 
-    def delete_socail_account(self, id: str):
-        SocialAccount.query.filter_by(id=id).delete()
+    def delete_socail_account(self, user_id: str, social_account_id: str):
+        SocialAccount.query.filter_by(user_id=user_id, id=social_account_id).delete()
         db.session.commit()
 
 

@@ -20,3 +20,4 @@ class MathOperator(Enum):
 
 
 operators_mapping = {"+": operator.add, "-": operator.sub, "*": operator.mul}
+KEY_PREFIX_CAPTCHA = "captcha:{id}"
